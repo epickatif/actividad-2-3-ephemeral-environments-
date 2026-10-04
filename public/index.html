@@ -116,7 +116,7 @@
     const estado = document.getElementById('estado');
 
     function consultarEstado() {
-      fetch('/api/estado')
+      fetch('/api/estado', { cache: 'no-store' })
         .then(response => response.json())
         .then(data => {
           estado.textContent = `Servidor activo · ${data.notasAlmacenadas} nota(s) en memoria`;
@@ -127,7 +127,7 @@
     }
 
     function cargarNotas() {
-      fetch('/api/notas')
+      fetch('/api/notas', { cache: 'no-store' })
         .then(response => response.json())
         .then(renderizarNotas)
         .catch(() => {

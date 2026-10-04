@@ -8,6 +8,11 @@ const horaInicio = new Date();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 let notas = [];
 let siguienteId = 1;
 
