@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actividad 2.3. Ephemeral Environments</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 60px auto;
+      text-align: center;
+      color: #222;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Entorno Efímero de Prueba</h1>
+  <p>Esta aplicación fue desplegada en un entorno efímero (Vercel) como parte de la Actividad 2.3.</p>
+  <button onclick="consultarEstado()">Consultar estado del servidor</button>
+  <div id="resultado"></div>
+
+  <script>
+    function consultarEstado() {
+      const resultado = document.getElementById('resultado');
+      resultado.textContent = 'Consultando...';
+
+      fetch('/api/estado')
+        .then(response => response.json())
+        .then(data => {
+          resultado.textContent = `${data.mensaje} (Hora del servidor: ${data.fechaHora})`;
+        })
+        .catch(error => {
+          resultado.textContent = `Error: ${error.message}`;
+        });
+    }
+  </script>
+</body>
+</html>

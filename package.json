@@ -1,0 +1,12 @@
+{
+  "name": "actividad-2.3-ephemeral-environments",
+  "version": "1.0.0",
+  "description": "Aplicacion simple de Node.js (Express) para practicar el despliegue en un entorno efimero (Vercel).",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
