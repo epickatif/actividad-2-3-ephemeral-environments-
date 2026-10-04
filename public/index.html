@@ -4,44 +4,193 @@
   <meta charset="UTF-8">
   <title>Actividad 2.3. Entorno efímero</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 60px auto;
-      text-align: center;
+      max-width: 560px;
+      margin: 50px auto;
+      padding: 0 20px;
       color: #222;
+      background: #f6f7fb;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+    }
+    p.descripcion {
+      text-align: center;
+      color: #555;
+      font-size: 0.95rem;
+    }
+    .tarjeta {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+    #estado {
+      font-size: 0.9rem;
+      color: #444;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
     button {
-      padding: 10px 20px;
+      padding: 10px 16px;
       font-size: 1rem;
       cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #2d6cdf;
+      color: #fff;
     }
-    #resultado {
-      margin-top: 20px;
-      font-weight: bold;
+    button:hover {
+      background: #1f55b8;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    li:last-child {
+      border-bottom: none;
+    }
+    .borrar {
+      background: #d9534f;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+    .borrar:hover {
+      background: #b52b27;
+    }
+    .vacio {
+      color: #888;
+      text-align: center;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <h1>Entorno efímero de prueba</h1>
-  <p>Esta aplicación fue desplegada en un entorno efímero (Vercel) como parte de la Actividad 2.3.</p>
-  <button onclick="consultarEstado()">Consultar estado del servidor</button>
-  <div id="resultado"></div>
+  <h1>Notas efímeras</h1>
+  <p class="descripcion">
+    Esta aplicación guarda notas en la memoria del servidor desplegado en Vercel.
+    Al tratarse de un entorno efímero, las notas desaparecen cuando el servidor se reinicia o se redespliega.
+  </p>
+
+  <div class="tarjeta">
+    <div id="estado">Consultando estado del servidor...</div>
+
+    <form id="formNota">
+      <input type="text" id="textoNota" placeholder="Escribe una nota..." maxlength="200" required>
+      <button type="submit">Agregar</button>
+    </form>
+
+    <ul id="listaNotas"></ul>
+  </div>
 
   <script>
-    function consultarEstado() {
-      const resultado = document.getElementById('resultado');
-      resultado.textContent = 'Consultando...';
+    const formNota = document.getElementById('formNota');
+    const textoNota = document.getElementById('textoNota');
+    const listaNotas = document.getElementById('listaNotas');
+    const estado = document.getElementById('estado');
 
+    function consultarEstado() {
       fetch('/api/estado')
         .then(response => response.json())
         .then(data => {
-          resultado.textContent = `${data.mensaje} (Hora del servidor: ${data.fechaHora})`;
+          estado.textContent = `Servidor activo · ${data.notasAlmacenadas} nota(s) en memoria`;
         })
-        .catch(error => {
-          resultado.textContent = `Error: ${error.message}`;
+        .catch(() => {
+          estado.textContent = 'No se pudo consultar el estado del servidor.';
         });
     }
+
+    function cargarNotas() {
+      fetch('/api/notas')
+        .then(response => response.json())
+        .then(renderizarNotas)
+        .catch(() => {
+          listaNotas.innerHTML = '<li class="vacio">No se pudieron cargar las notas.</li>';
+        });
+    }
+
+    function renderizarNotas(notas) {
+      listaNotas.innerHTML = '';
+
+      if (notas.length === 0) {
+        listaNotas.innerHTML = '<li class="vacio">Aún no hay notas. Agrega la primera.</li>';
+        return;
+      }
+
+      notas.forEach(nota => {
+        const item = document.createElement('li');
+
+        const texto = document.createElement('span');
+        texto.textContent = nota.texto;
+
+        const botonBorrar = document.createElement('button');
+        botonBorrar.textContent = 'Borrar';
+        botonBorrar.className = 'borrar';
+        botonBorrar.onclick = () => borrarNota(nota.id);
+
+        item.appendChild(texto);
+        item.appendChild(botonBorrar);
+        listaNotas.appendChild(item);
+      });
+    }
+
+    function borrarNota(id) {
+      fetch(`/api/notas/${id}`, { method: 'DELETE' })
+        .then(() => {
+          cargarNotas();
+          consultarEstado();
+        });
+    }
+
+    formNota.addEventListener('submit', (evento) => {
+      evento.preventDefault();
+      const texto = textoNota.value.trim();
+
+      if (!texto) {
+        return;
+      }
+
+      fetch('/api/notas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto }),
+      })
+        .then(response => response.json())
+        .then(() => {
+          textoNota.value = '';
+          cargarNotas();
+          consultarEstado();
+        });
+    });
+
+    consultarEstado();
+    cargarNotas();
   </script>
 </body>
 </html>
